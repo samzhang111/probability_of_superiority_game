@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probability of Superiority</title>
+    <link rel="stylesheet" href="dist/prob.css">
+</head>
+<body>
+    <div id="game">
+        <h1>Probability of superiority game</h1>
+        <div id="dashboard">
+            <div id="chart"></div>
+            <div id="results">
+                <div>
+                    Guess: <span id="yourguess">&nbsp;</span>
+                </div>
+                <div>
+                    Answer: <span id="answer">&nbsp;</span>
+                </div>
+            </div>
+        </div>
+        <div>Suppose you run a randomized control trial with a treatment and a control condition, measuring some dependent variable of interest. The outcome variables appear to be normally distributed within each condition. In the plot above, we show the means and 95% CIs for these two outcomes. Now suppose we drew 100 pairs of data points from the treatment and control groups. Out of those 100 pairs, in how many pairs can we expect the treatment outcome to be higher than the control outcome?</div>
+
+        <div id="controls">
+            <form id="guessform" method="post">
+                <input type="number" id="theguess" placeholder="0-100" min=0 max=100></input>
+                <input type="submit" value="Submit"></input>
+                <input type="button" id="newgame" value="New round"></input>
+            </form>
+        </div>
+
+    </div>
+
+    <script src="dist/prob.js"></script>
+</body>
+</html>
