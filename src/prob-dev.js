@@ -38,57 +38,82 @@ function randomData() {
     mu1 = tempMax
     mu2 = tempMin
 
-    var variance1 = 1 + Math.random() * 100
-    var variance2 = 1 + Math.random() * 100
-    var n1 = Math.round(Math.random() * 98) + 2
-    var n2 = Math.round(Math.random() * 98) + 2
+    var variance1 = 1 + Math.random() * 200
+    var variance2 = 1 + Math.random() * 200
+    var n1 = Math.round(Math.random() * 98) + 100
+    var n2 = Math.round(Math.random() * 98) + 100
 
-    return [{
+    let data = []
+    if (useSE) {
+        data.push({
             name: `Treatment (n=${n1})`,
             value: round100(mu1),
+            n: n1,
+            error: 2*round100(Math.sqrt(variance1)/n1),
+            sd: round100(Math.sqrt(variance1))
+        })
+    }
+    if (useSD) {
+        data.push({
+            name: `Treatment data (n=${n1})`,
+            value: round100(mu1),
+            error: 2*round100(Math.sqrt(variance1)),
             sd: round100(Math.sqrt(variance1)),
             n: n1,
-            se: round100(Math.sqrt(variance1)/n1)
-        },
-        {
+        })
+    }
+    if (useSE) {
+        data.push({
             name: `Control (n=${n2})`,
             value: round100(mu2),
+            n: n2,
+            error: 2*round100(Math.sqrt(variance2)/n2),
+            sd: round100(Math.sqrt(variance2)),
+        })
+    }
+    if (useSD) {
+        data.push({
+            name: `Control data (n=${n2})`,
+            value: round100(mu2),
+            error: 2*round100(Math.sqrt(variance2)),
             sd: round100(Math.sqrt(variance2)),
             n: n2,
-            se: round100(Math.sqrt(variance1)/n2)
-        },
-    ]
+        })
+    }
+
+    return data
 }
 
 function computeProbOfSuperiority(data) {
-    var mu = data[1].value - data[0].value
-    var variance = data[0].sd ** 2 + data[1].sd ** 2
+    var mu = data[data.length - 1].value - data[0].value
+    var variance = data[0].sd ** 2 + data[data.length - 1].sd ** 2
 
     return cdf(0, mu, variance)
 }
 
-let chart, probOfSuperiority
+let chart, probOfSuperiority, useSE, useSD, usePoints, guessed=false
 
 function resetGame() {
-    let theGuessElement = document.querySelector("#theguess")
-    let yourGuessDisplayElement = document.querySelector("#yourguess")
-    let answerElement = document.querySelector("#answer")
-    theGuessElement.value = ""
-    yourGuessDisplayElement.textContent = ""
-    answerElement.textContent = ""
+    document.querySelector("#theguess").value = ""
+    document.querySelector("#answer").textContent = ""
+    document.querySelector("#after_game").style.display = "none"
 
     let data = randomData();
     let probOfSuperiority = computeProbOfSuperiority(data)
 
-    data[0]["error"] = 2*data[0].se
-    data[1]["error"] = 2*data[1].se
-
+    let lowerBound = data[0].value
+    let upperBound = data[0].value
     data.forEach((obj) => {
-    obj.range = [obj.value - obj.error, obj.value + obj.error];
-    });
+        obj.range = [obj.value - obj.error, obj.value + obj.error];
 
-    let lowerBound = Math.min(data[0].range[0], data[1].range[0])
-    let upperBound = Math.max(data[0].range[1], data[1].range[1])
+        if (obj.range[0] < lowerBound) {
+            lowerBound = obj.range[0]
+        }
+
+        if (obj.range[1] > upperBound) {
+            upperBound = obj.range[1]
+        }
+    });
 
     chart.legend(false);
     chart.changeData(data);
@@ -106,22 +131,22 @@ function resetGame() {
 
 
     chart.tooltip({
-    showMarkers: false
+        showMarkers: false
     });
 
     chart.point()
-    .position('name*value')
-    .color('name')
-    .size(5)
-    .style({
-        fillOpacity: 1,
-    });
+        .position('name*value')
+        .color('name')
+        .size(5)
+        .style({
+            fillOpacity: 1,
+        });
 
     chart.interval()
-    .position('name*range')
-    .color('name')
-    .size(40)
-    .shape('tick');
+        .position('name*range')
+        .color('name')
+        .size(40)
+        .shape('tick');
 
     chart.interaction('active-region');
     chart.render();
@@ -130,24 +155,43 @@ function resetGame() {
 }
 
 function submitGuess(event) {
-    let theGuessElement = document.querySelector("#theguess")
-    let yourGuessDisplayElement = document.querySelector("#yourguess")
-    let answerElement = document.querySelector("#answer")
+    if (!guessed) {
+        let answerElement = document.querySelector("#answer")
+        answerElement.textContent = parseInt(Math.round(100 * probOfSuperiority))
 
-    let guess = parseInt(theGuessElement.value)
+        document.querySelector("#after_game").style.display = "block"
 
-    yourGuessDisplayElement.textContent = guess
-    answerElement.textContent = parseInt(Math.round(100 * probOfSuperiority))
+        guessed = true
+    }
     event.preventDefault()
 }
 
 function newGame() {
+    guessed = false
     probOfSuperiority = resetGame()
 }
 
+function updateSettings() {
+    useSE = document.querySelector("#use_se").checked
+    useSD = document.querySelector("#use_sd").checked
 
-document.querySelector("#guessform").addEventListener("submit", submitGuess)
+    // default to SEs
+    if (!(useSE || useSD)) {
+        document.querySelector("#use_se").checked = true
+        useSE = true
+    }
+
+    usePoints = document.querySelector("#use_points").checked
+    newGame()
+}
+
+document.querySelector("#theguess_form").addEventListener("submit", submitGuess)
+document.querySelector("#theguess").addEventListener("blur", submitGuess)
 document.querySelector("#newgame").addEventListener("click", newGame)
+
+document.querySelector("#use_se").addEventListener("change", updateSettings)
+document.querySelector("#use_sd").addEventListener("change", updateSettings)
+document.querySelector("#use_points").addEventListener("change", updateSettings)
 
 chart = new Chart({
     container: 'chart',
@@ -155,4 +199,5 @@ chart = new Chart({
     height: 400
 });
 
-probOfSuperiority = resetGame()
+updateSettings()
+M.AutoInit();

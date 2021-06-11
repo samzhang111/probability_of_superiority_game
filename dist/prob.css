@@ -27,13 +27,25 @@ html {
 
 #results {
     display: inline-block;
-    font-size: 48px;
-}
-
-#yourguess {
-    color: blue;
+    font-size: 24px;
 }
 
 #answer {
     color: green;
+}
+
+#theguess_form {
+    width: 4em;
+    display: inline-block;
+}
+
+#theguess {
+    width: 100%;
+    display: inline;
+    color: blue;
+    font-size: 24px;
+}
+
+#after_game {
+    display: none;
 }
