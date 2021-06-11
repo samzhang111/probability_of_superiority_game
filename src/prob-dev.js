@@ -5,8 +5,8 @@ function round100(x) {
 }
 
 function randomData() {
-    var mu1 = Math.random() * 100
-    var mu2 = Math.random() * 100
+    var mu1 = Math.random() * 50
+    var mu2 = Math.random() * 50
     var tempMax = Math.max(mu1, mu2)
     var tempMin = Math.min(mu1, mu2)
     mu1 = tempMax
@@ -14,8 +14,8 @@ function randomData() {
 
     var variance1 = 1 + Math.random() * 30
     var variance2 = 1 + Math.random() * 30
-    var n1 = Math.round(Math.random() * 98) + 30
-    var n2 = Math.round(Math.random() * 98) + 30
+    var n1 = Math.round(Math.random() * 70) + 30
+    var n2 = Math.round(Math.random() * 70) + 30
 
     let data = []
     if (useSE) {
