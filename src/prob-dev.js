@@ -49,7 +49,7 @@ function randomData() {
             name: `Treatment (n=${n1})`,
             value: round100(mu1),
             n: n1,
-            error: 2*round100(Math.sqrt(variance1)/n1),
+            error: 2*round100(Math.sqrt(variance1/n1)),
             sd: round100(Math.sqrt(variance1))
         })
     }
@@ -67,7 +67,7 @@ function randomData() {
             name: `Control (n=${n2})`,
             value: round100(mu2),
             n: n2,
-            error: 2*round100(Math.sqrt(variance2)/n2),
+            error: 2*round100(Math.sqrt(variance2/n2)),
             sd: round100(Math.sqrt(variance2)),
         })
     }
@@ -100,6 +100,7 @@ function resetGame() {
 
     let data = randomData();
     let probOfSuperiority = computeProbOfSuperiority(data)
+    console.log({data, probOfSuperiority})
 
     let lowerBound = data[0].value
     let upperBound = data[0].value
