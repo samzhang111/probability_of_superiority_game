@@ -156,6 +156,12 @@ function resetGame() {
 
 function submitGuess(event) {
     if (!guessed) {
+        let guessElement = document.querySelector("#theguess")
+        if (guessElement.value.length == 0) {
+            // bail if empty guess
+            return
+        }
+
         let answerElement = document.querySelector("#answer")
         answerElement.textContent = parseInt(Math.round(100 * probOfSuperiority))
 
