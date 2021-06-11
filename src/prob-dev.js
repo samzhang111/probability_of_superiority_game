@@ -31,8 +31,8 @@ function round100(x) {
 }
 
 function randomData() {
-    var mu1 = Math.random() * 10
-    var mu2 = Math.random() * 10
+    var mu1 = Math.random() * 30
+    var mu2 = Math.random() * 30
     var tempMax = Math.max(mu1, mu2)
     var tempMin = Math.min(mu1, mu2)
     mu1 = tempMax
