@@ -12,6 +12,7 @@
 <body>
     <div id="game">
         <h1>Probability of superiority</h1>
+        <h2 id="loading">Loading...</h2>
         <div id="settings">
             <form action="#">
                 <p><label for="use_se"><input type="checkbox" id="use_se" name="use_se" checked="checked" /> <span>Show SE</span></label></p>
@@ -43,6 +44,8 @@
         <div>Suppose you run a randomized control trial with a treatment and a control condition, measuring some dependent variable of interest. The outcome variables appear to be normally distributed within each condition. In the plot above, we show the means and 95% CIs for these two outcomes. Now suppose we drew 100 pairs of data points from the treatment and control groups. Out of those 100 pairs, in how many pairs can we expect the treatment outcome to be higher than the control outcome?</div>
     </div>
 
+    
+    <script type="text/javascript" src="https://unpkg.com/@stdlib/dist-flat"></script>
     <script src="https://cdn.jsdelivr.net/npm/@materializecss/materialize@1.1.0-alpha/dist/js/materialize.min.js"></script>
     <script src="dist/prob.js"></script>
 </body>

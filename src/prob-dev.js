@@ -1,47 +1,21 @@
 import { Chart } from '@antv/g2';
 
-// From https://stackoverflow.com/questions/14846767/std-normal-cdf-normal-cdf-or-error-function
-function erf(x) {
-  // save the sign of x
-  var sign = (x >= 0) ? 1 : -1;
-  x = Math.abs(x);
-
-  // constants
-  var a1 =  0.254829592;
-  var a2 = -0.284496736;
-  var a3 =  1.421413741;
-  var a4 = -1.453152027;
-  var a5 =  1.061405429;
-  var p  =  0.3275911;
-
-  // A&S formula 7.1.26
-  var t = 1.0/(1.0 + p*x);
-  var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-  return sign * y; // erf(-x) = -erf(x);
-}
-
-// From https://stackoverflow.com/questions/14846767/std-normal-cdf-normal-cdf-or-error-function
-function cdf(x, mean, variance) {
-  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2 * variance))));
-}
-
-
 function round100(x) {
     return Math.round(x * 100)/100
 }
 
 function randomData() {
-    var mu1 = Math.random() * 30
-    var mu2 = Math.random() * 30
+    var mu1 = Math.random() * 100
+    var mu2 = Math.random() * 100
     var tempMax = Math.max(mu1, mu2)
     var tempMin = Math.min(mu1, mu2)
     mu1 = tempMax
     mu2 = tempMin
 
-    var variance1 = 1 + Math.random() * 200
-    var variance2 = 1 + Math.random() * 200
-    var n1 = Math.round(Math.random() * 98) + 100
-    var n2 = Math.round(Math.random() * 98) + 100
+    var variance1 = 1 + Math.random() * 30
+    var variance2 = 1 + Math.random() * 30
+    var n1 = Math.round(Math.random() * 98) + 30
+    var n2 = Math.round(Math.random() * 98) + 30
 
     let data = []
     if (useSE) {
@@ -87,8 +61,11 @@ function randomData() {
 function computeProbOfSuperiority(data) {
     var mu = data[data.length - 1].value - data[0].value
     var variance = data[0].sd ** 2 + data[data.length - 1].sd ** 2
+    var psup = stdlib.base.dists.normal.cdf(0, mu, variance)
 
-    return cdf(0, mu, variance)
+    console.log({data, mu, variance, psup})
+
+    return psup
 }
 
 let chart, probOfSuperiority, useSE, useSD, usePoints, guessed=false
@@ -199,6 +176,7 @@ document.querySelector("#newgame").addEventListener("click", newGame)
 document.querySelector("#use_se").addEventListener("change", updateSettings)
 document.querySelector("#use_sd").addEventListener("change", updateSettings)
 document.querySelector("#use_points").addEventListener("change", updateSettings)
+document.querySelector("#loading").style.display = "none"
 
 chart = new Chart({
     container: 'chart',
