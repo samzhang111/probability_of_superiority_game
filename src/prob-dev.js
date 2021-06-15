@@ -1,22 +1,92 @@
 import { Chart } from '@antv/g2';
+var base = require( '@stdlib/dist-stats-base-dists-flat' ).base;
+
+// Box-Mueller, modified from https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
+function randn_bm(n, mu, sigma) {
+    // n = number of random numbers to sample
+    // mu = mean
+    // sigma = stddev
+
+    console.log({n, mu, sigma})
+
+    let data = []
+
+    for (let i=0; i<n; i++) {
+        var u = 0, v = 0;
+        while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+        while(v === 0) v = Math.random();
+        let randn = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v ) 
+
+        data.push(randn * sigma + mu);
+    }
+
+    return data
+}
+
+function sum(arr) {
+    let total = 0
+    for (let i=0; i<arr.length; i++) {
+        total += arr[i]
+    }
+
+    return total
+}
+
+function mean(arr) {
+    return sum(arr) / arr.length
+}
+
+function computeVariance(arr) {
+    let arr2 = []
+    let arrMean = mean(arr)
+    for (let i=0; i<arr.length; i++) {
+        arr2.push((arr[i] - arrMean)**2)
+    }
+
+    return mean(arr2)
+}
+
+// Random draws from a normal distribution
+// Points are adjusted so that sample means and standard deviations match the population
+function randn_adj(n, mu, sigma) {
+    let sample = randn_bm(n, mu, sigma)
+
+    let sampleMean = mean(sample)
+    let sampleVariance = computeVariance(sample)
+
+    let sampleAdj = []
+
+    for (let i=0; i<sample.length; i++) {
+        sampleAdj.push((sample[i] - sampleMean)/Math.sqrt(sampleVariance) * sigma + mu)
+    }
+
+    return sampleAdj
+}
 
 function round100(x) {
     return Math.round(x * 100)/100
 }
 
-function randomData() {
-    var mu1 = Math.random() * 50
-    var mu2 = Math.random() * 50
+function generateScenario() {
+    var mu1 = Math.random() * 3
+    var mu2 = Math.random() * 3
     var tempMax = Math.max(mu1, mu2)
     var tempMin = Math.min(mu1, mu2)
     mu1 = tempMax
     mu2 = tempMin
 
-    var variance1 = 1 + Math.random() * 30
-    var variance2 = 1 + Math.random() * 30
-    var n1 = Math.round(Math.random() * 70) + 30
-    var n2 = Math.round(Math.random() * 70) + 30
+    var variance1 = 1 + Math.random() * 2
+    var variance2 = 1 + Math.random() * 2
+    var n1 = Math.round(Math.random() * 85) + 15
+    var n2 = Math.round(Math.random() * 85) + 15
 
+    return {
+        mu1, mu2, variance1, variance2, n1, n2
+    }
+}
+
+function createBars(scenario) {
+    let {mu1, mu2, variance1, variance2, n1, n2} = scenario
     let data = []
     if (useSE) {
         data.push({
@@ -58,12 +128,39 @@ function randomData() {
     return data
 }
 
-function computeProbOfSuperiority(data) {
-    var mu = data[data.length - 1].value - data[0].value
-    var variance = data[0].sd ** 2 + data[data.length - 1].sd ** 2
-    var psup = stdlib.base.dists.normal.cdf(0, mu, variance)
+function samplePointsFromScenario(scenario) {
+    let {mu1, mu2, variance1, variance2, n1, n2} = scenario
 
-    console.log({data, mu, variance, psup})
+    let sample1 = randn_adj(n1, mu1, Math.sqrt(variance1))
+    let sample2 = randn_adj(n2, mu2, Math.sqrt(variance2))
+    let data = []
+
+    for (let i=0; i<n1; i++) {
+        data.push({
+            name: `Treatment (n=${n1})`, 
+            value: sample1[i]
+        })
+    }
+    for (let i=0; i<n2; i++) {
+        data.push({
+            name: `Control (n=${n2})`, 
+            value: sample2[i]
+        })
+    }
+
+    console.log({
+        mu1, mean1: mean(sample1), variance1, empvar1: computeVariance(sample1),
+        mu2, mean2: mean(sample2), variance2, empvar2: computeVariance(sample2),
+    })
+
+    return data
+}
+
+function computeProbOfSuperiority(scenario) {
+    let {mu1, mu2, variance1, variance2} = scenario
+    let mu = mu2 - mu1
+    let variance = variance1 + variance2
+    let psup = base.dists.normal.cdf(0, mu, Math.sqrt(variance))
 
     return psup
 }
@@ -75,13 +172,14 @@ function resetGame() {
     document.querySelector("#answer").textContent = ""
     document.querySelector("#after_game").style.display = "none"
 
-    let data = randomData();
-    let probOfSuperiority = computeProbOfSuperiority(data)
-    console.log({data, probOfSuperiority})
+    let scenario = generateScenario()
+    let barData = createBars(scenario);
+    let probOfSuperiority = computeProbOfSuperiority(scenario)
+    console.log({scenario, probOfSuperiority})
 
-    let lowerBound = data[0].value
-    let upperBound = data[0].value
-    data.forEach((obj) => {
+    let lowerBound = barData[0].value
+    let upperBound = barData[0].value
+    barData.forEach((obj) => {
         obj.range = [obj.value - obj.error, obj.value + obj.error];
 
         if (obj.range[0] < lowerBound) {
@@ -94,19 +192,7 @@ function resetGame() {
     });
 
     chart.legend(false);
-    chart.changeData(data);
-
-    chart.scale({
-        value: {
-            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-            max: round100(upperBound + 0.1 * Math.abs(upperBound))
-        },
-        range: {
-            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-            max: round100(upperBound + 0.1 * Math.abs(upperBound))
-        }
-    });
-
+    chart.changeData(barData);
 
     chart.tooltip({
         showMarkers: false
@@ -125,6 +211,53 @@ function resetGame() {
         .color('name')
         .size(40)
         .shape('tick');
+
+    if (usePoints) {
+        let points = samplePointsFromScenario(scenario)
+        lowerBound = points[0].value
+        upperBound = points[0].value
+        points.forEach((obj) => {
+            if (obj.value < lowerBound) {
+                lowerBound = obj.value
+            }
+
+            if (obj.value > upperBound) {
+                upperBound = obj.value
+            }
+        });
+
+        let chartPointView = chart.createView({
+            padding: 0
+        })
+
+        chartPointView.data(points)
+        chartPointView.axis(false)
+        chartPointView.tooltip(false)
+        chartPointView
+            .point()
+            .position('name*value')
+            .adjust('jitter')
+            .color("name")
+            .shape("circle")
+            .size(3)
+        chartPointView.scale({
+            value: {
+                min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+                max: round100(upperBound + 0.1 * Math.abs(upperBound))
+            }
+        });
+    }
+
+    chart.scale({
+        value: {
+            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+            max: round100(upperBound + 0.1 * Math.abs(upperBound))
+        },
+        range: {
+            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+            max: round100(upperBound + 0.1 * Math.abs(upperBound))
+        }
+    });
 
     chart.interaction('active-region');
     chart.render();
@@ -153,19 +286,20 @@ function submitGuess(event) {
 function newGame() {
     guessed = false
     probOfSuperiority = resetGame()
+    document.querySelector("#theguess").focus()
 }
 
 function updateSettings() {
     useSE = document.querySelector("#use_se").checked
     useSD = document.querySelector("#use_sd").checked
+    usePoints = document.querySelector("#use_points").checked
 
     // default to SEs
-    if (!(useSE || useSD)) {
+    if (!(useSE || useSD || usePoints)) {
         document.querySelector("#use_se").checked = true
         useSE = true
     }
 
-    usePoints = document.querySelector("#use_points").checked
     newGame()
 }
 

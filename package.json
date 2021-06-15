@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@stdlib/dist-flat": "0.0.94",
+    "@stdlib/dist-stats-base-dists-flat": "0.0.94",
     "@stdlib/dist-tree": "0.0.94"
   }
 }
