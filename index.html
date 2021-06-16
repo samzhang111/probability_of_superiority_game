@@ -12,18 +12,37 @@
 <body>
     <div id="game">
         <h1>Probability of superiority</h1>
-        <h2 id="loading">Loading...</h2>
+        <h2 id="loading">Loading...
+            <div class="progress">
+                <div class="indeterminate"></div>
+            </div>
+        </h2>
+
+        <div id="trialsettings" class="card-panel">
+            <div><b>Debug settings (these will be removed before putting on mturk)</b></div>
+            <form id="experiment_debug_form" action="#">
+                <p><label for="condition1"><input type="radio" id="condition1" name="condition" value="SE_ONLY" checked="checked" /> <span>Condition 1 (SE only)</span></label></p>
+                <p><label for="condition2"><input type="radio" id="condition2" name="condition" value="SE_POINTS" /> <span>Condition 2 (SE + points)</span></label></p>
+                <p><label for="condition3"><input type="radio" id="condition3" name="condition" value="SE_POINTS_ONESHOT"  /> <span>Condition 3 (SE + points oneshot)</span></label></p>
+                <p><label for="condition4"><input type="radio" id="condition4" name="condition" value="SE_POINTS_FEEDBACK" /> <span>Condition 4 (SE + points feedback)</span></label></p>
+                <label for="trialnumber">Trial number<input type="number" id="trialnumber" placeholder="1-20" min=1 max=20 value=1></input></label>
+            </form>
+        </div>
+        <!--
         <div id="settings">
             <form action="#">
                 <p><label for="use_se"><input type="checkbox" id="use_se" name="use_se" checked="checked" /> <span>Show SE</span></label></p>
                 <p><label for="use_sd"><input type="checkbox" id="use_sd" name="use_sd"></input><span>Show SD</span></label></p>
                 <p><label for="use_points"><input type="checkbox" id="use_points" name="use_points"></input><span>Show points</span></label></p>
                 <p><label for="show_tutorial"><input type="checkbox" id="show_tutorial" name="show_tutorial"></input><span>Show tutorial after guess</span></label></p>
+                <p><label for="obtain_confirmation"><input type="checkbox" id="obtain_confirmation" name="obtain_confirmation"></input><span>Obtain confirmation before round</span></label></p>
             </form>
         </div>
+        -->
 
         <div id="dashboard">
             <div>Suppose you run a randomized control trial with a treatment and a control condition, measuring some dependent variable of interest. The outcome variables appear to be normally distributed within each condition. In the plot above, we show the means and 95% CIs for these two outcomes. <b>Suppose we drew 100 pairs of data points from the treatment and control groups. Out of those 100 pairs, in how many pairs can we expect the treatment outcome to be higher than the control outcome?</b></div>
+            <h4>Trial <span id="trialdisplay">1</span> of 20</h4>
             <div id="chart"></div>
             <div id="results">
                 <div>
@@ -33,14 +52,24 @@
                     </form>
                 </div>
                 <div id="after_game">
-                    <div>
+                    <div id="answer_block">
                     Answer: <span id="answer">&nbsp;</span>
                     </div>
                     <div id="tutorial">The error bars displayed were 95% confidence intervals from the data shown above. The tightness of the error bars reflects how precisely the population mean can be estimated from the mean of the given sample. The data itself can still substantially overlap, even if the confidence intervals around the means do not overlap.</div>
                     <div>
-                            <a class="btn waves-effect waves-light" id="newgame">New round</a>
+                            <a class="btn waves-effect waves-light" id="newgame">Continue</a>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="confirmation_modal" class="modal">
+            <div class="modal-content">
+                <h4>What you are seeing is about to change</h4>
+                <p>The error bars are still 95% confidence intervals, except now we will hide or display the data points that the error bars were generated from.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">I understand</a>
             </div>
         </div>
     </div>

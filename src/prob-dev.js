@@ -1,201 +1,29 @@
 import { Chart } from '@antv/g2';
-var base = require( '@stdlib/dist-stats-base-dists-flat' ).base;
+import {generateScenario, createBars, samplePointsFromScenario, EXPERIMENTAL_CONDITIONS_ENUM, experimentStateToTrialSettings} from "./experiment"
+import {round100, computeProbOfSuperiority} from "./stats"
 
-// Box-Mueller, modified from https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
-function randn_bm(n, mu, sigma) {
-    // n = number of random numbers to sample
-    // mu = mean
-    // sigma = stddev
+let chart, experimentState={}, experimentResults={}, trialSettings, showPoints, showTutorial
+const modals = document.querySelectorAll('.modal');
+let modal = M.Modal.init(modals, {
+    opacity: 0.9,
+    dismissable: true,
+})[0];
 
-    console.log({n, mu, sigma})
+function resetGame(trialSettings) {
+    chart.clear()
 
-    let data = []
-
-    for (let i=0; i<n; i++) {
-        var u = 0, v = 0;
-        while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-        while(v === 0) v = Math.random();
-        let randn = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v ) 
-
-        data.push(randn * sigma + mu);
-    }
-
-    return data
-}
-
-function sum(arr) {
-    let total = 0
-    for (let i=0; i<arr.length; i++) {
-        total += arr[i]
-    }
-
-    return total
-}
-
-function mean(arr) {
-    return sum(arr) / arr.length
-}
-
-function computeVariance(arr) {
-    let arr2 = []
-    let arrMean = mean(arr)
-    for (let i=0; i<arr.length; i++) {
-        arr2.push((arr[i] - arrMean)**2)
-    }
-
-    return mean(arr2)
-}
-
-// Random draws from a normal distribution
-// Points are adjusted so that sample means and standard deviations match the population
-function randn_adj(n, mu, sigma) {
-    let sample = randn_bm(n, mu, sigma)
-
-    let sampleMean = mean(sample)
-    let sampleVariance = computeVariance(sample)
-
-    let sampleAdj = []
-
-    for (let i=0; i<sample.length; i++) {
-        sampleAdj.push((sample[i] - sampleMean)/Math.sqrt(sampleVariance) * sigma + mu)
-    }
-
-    return sampleAdj
-}
-
-function round100(x) {
-    return Math.round(x * 100)/100
-}
-
-function generateScenario() {
-    var mu1 = Math.random() * 3
-    var mu2 = Math.random() * 3
-    var tempMax = Math.max(mu1, mu2)
-    var tempMin = Math.min(mu1, mu2)
-    mu1 = tempMax
-    mu2 = tempMin
-
-    var variance1 = 1 + Math.random() * 2
-    var variance2 = 1 + Math.random() * 2
-    var n1 = Math.round(Math.random() * 85) + 15
-    var n2 = Math.round(Math.random() * 85) + 15
-
-    return {
-        mu1, mu2, variance1, variance2, n1, n2
-    }
-}
-
-function createBars(scenario) {
-    let {mu1, mu2, variance1, variance2, n1, n2} = scenario
-    let data = []
-    if (useSE) {
-        data.push({
-            name: `Treatment (n=${n1})`,
-            value: round100(mu1),
-            n: n1,
-            error: 2*round100(Math.sqrt(variance1/n1)),
-            sd: round100(Math.sqrt(variance1))
-        })
-    }
-    if (useSD) {
-        data.push({
-            name: `Treatment data (n=${n1})`,
-            value: round100(mu1),
-            error: 2*round100(Math.sqrt(variance1)),
-            sd: round100(Math.sqrt(variance1)),
-            n: n1,
-        })
-    }
-    if (useSE) {
-        data.push({
-            name: `Control (n=${n2})`,
-            value: round100(mu2),
-            n: n2,
-            error: 2*round100(Math.sqrt(variance2/n2)),
-            sd: round100(Math.sqrt(variance2)),
-        })
-    }
-    if (useSD) {
-        data.push({
-            name: `Control data (n=${n2})`,
-            value: round100(mu2),
-            error: 2*round100(Math.sqrt(variance2)),
-            sd: round100(Math.sqrt(variance2)),
-            n: n2,
-        })
-    }
-
-    return data
-}
-
-function samplePointsFromScenario(scenario) {
-    let {mu1, mu2, variance1, variance2, n1, n2} = scenario
-
-    let sample1 = randn_adj(n1, mu1, Math.sqrt(variance1))
-    let sample2 = randn_adj(n2, mu2, Math.sqrt(variance2))
-    let data = []
-
-    for (let i=0; i<n1; i++) {
-        data.push({
-            name: `Treatment (n=${n1})`, 
-            value: sample1[i]
-        })
-    }
-    for (let i=0; i<n2; i++) {
-        data.push({
-            name: `Control (n=${n2})`, 
-            value: sample2[i]
-        })
-    }
-
-    console.log({
-        mu1, mean1: mean(sample1), variance1, empvar1: computeVariance(sample1),
-        mu2, mean2: mean(sample2), variance2, empvar2: computeVariance(sample2),
-    })
-
-    return data
-}
-
-function computeProbOfSuperiority(scenario) {
-    let {mu1, mu2, variance1, variance2} = scenario
-    let mu = mu2 - mu1
-    let variance = variance1 + variance2
-    let psup = base.dists.normal.cdf(0, mu, Math.sqrt(variance))
-
-    return psup
-}
-
-let chart, probOfSuperiority, useSE, useSD, usePoints, showTutorial, showPoints, guessed=false
-
-
-
-function resetGame() {
     document.querySelector("#theguess").value = ""
     document.querySelector("#answer").textContent = ""
     document.querySelector("#after_game").style.display = "none"
     document.querySelector("#tutorial").style.display = "none"
 
     let scenario = generateScenario()
-    let barData = createBars(scenario);
+    let bars = createBars(scenario, trialSettings)
+    let {lowerBound, upperBound} = bars
     let probOfSuperiority = computeProbOfSuperiority(scenario)
-    console.log({scenario, probOfSuperiority})
-
-    let lowerBound = barData[0].value
-    let upperBound = barData[0].value
-    barData.forEach((obj) => {
-        obj.range = [obj.value - obj.error, obj.value + obj.error];
-
-        if (obj.range[0] < lowerBound) {
-            lowerBound = obj.range[0]
-        }
-
-        if (obj.range[1] > upperBound) {
-            upperBound = obj.range[1]
-        }
-    });
 
     chart.legend(false);
-    chart.changeData(barData);
+    chart.changeData(bars.data);
 
     chart.tooltip({
         showMarkers: false
@@ -206,7 +34,7 @@ function resetGame() {
         .color('name')
         .size(5)
         .style({
-            fillOpacity: 1,
+            fillOpacity: 0,
         });
 
     chart.interval()
@@ -229,23 +57,13 @@ function resetGame() {
 
     showPoints = () => {
         let points = samplePointsFromScenario(scenario)
-        let lowerBound = points[0].value
-        let upperBound = points[0].value
-        points.forEach((obj) => {
-            if (obj.value < lowerBound) {
-                lowerBound = obj.value
-            }
-
-            if (obj.value > upperBound) {
-                upperBound = obj.value
-            }
-        });
+        let {lowerBound, upperBound} = points
 
         let chartPointView = chart.createView({
             padding: 0
         })
 
-        chartPointView.data(points)
+        chartPointView.data(points.data)
         chartPointView.axis(false)
         chartPointView.tooltip(false)
         chartPointView
@@ -274,7 +92,20 @@ function resetGame() {
         });
     }
 
-    if (usePoints) {
+    showTutorial = () => {
+        if (!trialSettings.showTutorial) {
+            return
+        }
+
+        if (!trialSettings.usePoints) {
+            showPoints()
+            chart.render()
+        }
+
+        document.querySelector("#tutorial").style.display ="block"
+    }
+
+    if (trialSettings.usePoints) {
         showPoints()
     }
 
@@ -285,7 +116,7 @@ function resetGame() {
 }
 
 function submitGuess(event) {
-    if (!guessed) {
+    if (!experimentState.guessed) {
         let guessElement = document.querySelector("#theguess")
         if (guessElement.value.length == 0) {
             // bail if empty guess
@@ -293,54 +124,76 @@ function submitGuess(event) {
         }
 
         let guess = parseInt(guessElement.value)
-        if (showTutorial) {
-            if (!usePoints) {
-                showPoints()
-                chart.render()
-            }
+        showTutorial()
 
-            document.querySelector("#tutorial").style.display ="block"
-        }
-
-        let answerElement = document.querySelector("#answer")
-        answerElement.textContent = parseInt(Math.round(100 * probOfSuperiority))
-
+        document.querySelector("#answer").textContent = parseInt(Math.round(100 * experimentState.probOfSuperiority))
+        document.querySelector("#answer_block").style.display = trialSettings.showFeedback ? "block" : "none"
         document.querySelector("#after_game").style.display = "block"
 
-        guessed = true
+        experimentState.guessed = true
     }
     event.preventDefault()
 }
 
-function newGame() {
-    guessed = false
-    probOfSuperiority = resetGame()
+function newGame(trialSettings) {
+    console.log({experimentState, trialSettings})
+    document.querySelector("#trialdisplay").textContent = experimentState.trial
+    experimentState.guessed = false
+
+    if (trialSettings.obtainConfirmation) {
+        modal = document.querySelector('.modal');
+        const instance = M.Modal.getInstance(modal);
+
+        instance.open()
+    }
+
+    experimentState.probOfSuperiority = resetGame(trialSettings)
     document.querySelector("#theguess").focus()
 }
 
-function updateSettings() {
-    useSE = document.querySelector("#use_se").checked
-    useSD = document.querySelector("#use_sd").checked
-    usePoints = document.querySelector("#use_points").checked
-    showTutorial = document.querySelector("#show_tutorial").checked
-
-    // default to SEs
-    if (!(useSE || useSD || usePoints)) {
-        document.querySelector("#use_se").checked = true
-        useSE = true
+function updateExperiment(event) {
+    if (event !== undefined) {
+        event.preventDefault()
     }
 
-    newGame()
+    if (document.querySelector("#trialnumber").value.length == 0) {
+        return
+    }
+
+    experimentState.trial = parseInt(document.querySelector("#trialnumber").value)
+    experimentState.condition = document.querySelector("input[name='condition']:checked").value
+
+    trialSettings = experimentStateToTrialSettings(experimentState)
+
+    newGame(trialSettings)
+}
+
+function endExperiment() {
+    // TODO: end it
+    alert("experiment is done! send data to mturk!")
+}
+
+function nextRound() {
+    if (experimentState.trial == 20) {
+        return endExperiment()
+    }
+
+    experimentState.trial += 1
+    trialSettings = experimentStateToTrialSettings(experimentState)
+    newGame(trialSettings)
 }
 
 document.querySelector("#theguess_form").addEventListener("submit", submitGuess)
 document.querySelector("#theguess").addEventListener("blur", submitGuess)
-document.querySelector("#newgame").addEventListener("click", newGame)
+document.querySelector("#newgame").addEventListener("click", nextRound)
 
-document.querySelector("#use_se").addEventListener("change", updateSettings)
-document.querySelector("#use_sd").addEventListener("change", updateSettings)
-document.querySelector("#use_points").addEventListener("change", updateSettings)
-document.querySelector("#show_tutorial").addEventListener("change", updateSettings)
+document.querySelectorAll("input[name='condition']").forEach(radio => {
+    radio.addEventListener("change", updateExperiment)
+})
+
+document.querySelector("#trialnumber").addEventListener("blur", updateExperiment)
+document.querySelector("#experiment_debug_form").addEventListener("submit", updateExperiment)
+
 document.querySelector("#loading").style.display = "none"
 
 chart = new Chart({
@@ -349,5 +202,6 @@ chart = new Chart({
     height: 400
 });
 
-updateSettings()
+//updateSettings()
+updateExperiment()
 M.AutoInit();
