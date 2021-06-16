@@ -165,12 +165,15 @@ function computeProbOfSuperiority(scenario) {
     return psup
 }
 
-let chart, probOfSuperiority, useSE, useSD, usePoints, guessed=false
+let chart, probOfSuperiority, useSE, useSD, usePoints, showTutorial, showPoints, guessed=false
+
+
 
 function resetGame() {
     document.querySelector("#theguess").value = ""
     document.querySelector("#answer").textContent = ""
     document.querySelector("#after_game").style.display = "none"
+    document.querySelector("#tutorial").style.display = "none"
 
     let scenario = generateScenario()
     let barData = createBars(scenario);
@@ -212,10 +215,22 @@ function resetGame() {
         .size(40)
         .shape('tick');
 
-    if (usePoints) {
+    chart.scale({
+        value: {
+            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+            max: round100(upperBound + 0.1 * Math.abs(upperBound))
+        },
+        range: {
+            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+            max: round100(upperBound + 0.1 * Math.abs(upperBound))
+        }
+    });
+
+
+    showPoints = () => {
         let points = samplePointsFromScenario(scenario)
-        lowerBound = points[0].value
-        upperBound = points[0].value
+        let lowerBound = points[0].value
+        let upperBound = points[0].value
         points.forEach((obj) => {
             if (obj.value < lowerBound) {
                 lowerBound = obj.value
@@ -246,18 +261,22 @@ function resetGame() {
                 max: round100(upperBound + 0.1 * Math.abs(upperBound))
             }
         });
+
+        chart.scale({
+            value: {
+                min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+                max: round100(upperBound + 0.1 * Math.abs(upperBound))
+            },
+            range: {
+                min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
+                max: round100(upperBound + 0.1 * Math.abs(upperBound))
+            }
+        });
     }
 
-    chart.scale({
-        value: {
-            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-            max: round100(upperBound + 0.1 * Math.abs(upperBound))
-        },
-        range: {
-            min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-            max: round100(upperBound + 0.1 * Math.abs(upperBound))
-        }
-    });
+    if (usePoints) {
+        showPoints()
+    }
 
     chart.interaction('active-region');
     chart.render();
@@ -271,6 +290,16 @@ function submitGuess(event) {
         if (guessElement.value.length == 0) {
             // bail if empty guess
             return
+        }
+
+        let guess = parseInt(guessElement.value)
+        if (showTutorial) {
+            if (!usePoints) {
+                showPoints()
+                chart.render()
+            }
+
+            document.querySelector("#tutorial").style.display ="block"
         }
 
         let answerElement = document.querySelector("#answer")
@@ -293,6 +322,7 @@ function updateSettings() {
     useSE = document.querySelector("#use_se").checked
     useSD = document.querySelector("#use_sd").checked
     usePoints = document.querySelector("#use_points").checked
+    showTutorial = document.querySelector("#show_tutorial").checked
 
     // default to SEs
     if (!(useSE || useSD || usePoints)) {
@@ -310,6 +340,7 @@ document.querySelector("#newgame").addEventListener("click", newGame)
 document.querySelector("#use_se").addEventListener("change", updateSettings)
 document.querySelector("#use_sd").addEventListener("change", updateSettings)
 document.querySelector("#use_points").addEventListener("change", updateSettings)
+document.querySelector("#show_tutorial").addEventListener("change", updateSettings)
 document.querySelector("#loading").style.display = "none"
 
 chart = new Chart({

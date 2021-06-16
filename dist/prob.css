@@ -16,14 +16,14 @@ html {
 }
 
 #chart {
-    display: inline-block;
+    display: block;
     margin: 1em;
     width: 400px;
 }
 
 #results {
-    display: inline-block;
     font-size: 24px;
+    width: 100%;
 }
 
 #answer {
@@ -31,7 +31,6 @@ html {
 }
 
 #theguess_form {
-    width: 4em;
     display: inline-block;
 }
 
@@ -43,5 +42,11 @@ html {
 }
 
 #after_game {
+    display: none;
+}
+
+#tutorial {
+    width: 100%;
+    font-size: 18px;
     display: none;
 }
