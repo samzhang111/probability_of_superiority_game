@@ -1,8 +1,9 @@
 import { Chart } from '@antv/g2';
-import {generateScenario, createBars, samplePointsFromScenario, EXPERIMENTAL_CONDITIONS_ENUM, experimentStateToTrialSettings} from "./experiment"
-import {round100, computeProbOfSuperiority} from "./stats"
+import {generateScenario, createBars, samplePointsFromScenario, experimentStateToTrialSettings} from "./experiment"
+import {round100} from "./stats"
+import _ from "lodash"
 
-let chart, experimentState={}, experimentResults={}, trialSettings, showPoints, showTutorial
+let chart, experimentState={}, experimentResults=[], trialSettings, showPoints, showTutorial, startTime = new Date().getTime()
 const colors = ["#E91E63", "#4E5A7D"]
 const modals = document.querySelectorAll('.modal');
 let modal = M.Modal.init(modals, {
@@ -21,7 +22,6 @@ function resetGame(trialSettings) {
     let scenario = generateScenario()
     let bars = createBars(scenario, trialSettings)
     let {lowerBound, upperBound} = bars
-    let probOfSuperiority = computeProbOfSuperiority(scenario)
 
     chart.legend(false);
     chart.changeData(bars.data);
@@ -137,27 +137,41 @@ function resetGame(trialSettings) {
     chart.interaction('active-region');
     chart.render();
 
-    return probOfSuperiority
+    return scenario
 }
 
 function submitGuess(event) {
-    if (!experimentState.guessed) {
-        let guessElement = document.querySelector("#theguess")
-        if (guessElement.value.length == 0) {
-            // bail if empty guess
-            return
-        }
-
-        let guess = parseInt(guessElement.value)
-        showTutorial()
-
-        document.querySelector("#answer").textContent = parseInt(Math.round(100 * experimentState.probOfSuperiority))
-        document.querySelector("#answer_block").style.display = trialSettings.showFeedback ? "block" : "none"
-        document.querySelector("#after_game").style.display = "block"
-
-        experimentState.guessed = true
-    }
     event.preventDefault()
+    if (experimentState.guessed) {
+        return
+    }
+
+    let guessElement = document.querySelector("#theguess")
+    if (guessElement.value.length == 0) {
+        // bail if empty guess
+        return
+    }
+
+    let currentTime = new Date().getTime()
+
+    showTutorial()
+
+    document.querySelector("#answer").textContent = parseInt(Math.round(100 * experimentState.scenario.probOfSuperiority))
+    document.querySelector("#answer_block").style.display = trialSettings.showFeedback ? "block" : "none"
+    document.querySelector("#after_game").style.display = "block"
+
+    experimentState.guessed = true
+
+    experimentState['guess'] = parseInt(guessElement.value)
+    experimentState['currentTime'] = currentTime
+    experimentState['startTime'] = startTime
+    recordExperimentState()
+}
+
+function recordExperimentState() {
+    let trialDataElem = document.createElement("pre")
+    trialDataElem.textContent = JSON.stringify(_.omit(experimentState, ['guessed']), null, 4) + ","
+    document.querySelector("#debug_data").appendChild(trialDataElem)
 }
 
 function newGame(trialSettings) {
@@ -172,7 +186,7 @@ function newGame(trialSettings) {
         instance.open()
     }
 
-    experimentState.probOfSuperiority = resetGame(trialSettings)
+    experimentState.scenario = resetGame(trialSettings)
     document.querySelector("#theguess").focus()
 }
 
@@ -190,6 +204,7 @@ function updateExperiment(event) {
 
     trialSettings = experimentStateToTrialSettings(experimentState)
 
+    document.querySelector("#debug_data").innerHTML = ''
     newGame(trialSettings)
 }
 

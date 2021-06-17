@@ -28,17 +28,6 @@
                 <label for="trialnumber">Trial number<input type="number" id="trialnumber" placeholder="1-20" min=1 max=20 value=1></input></label>
             </form>
         </div>
-        <!--
-        <div id="settings">
-            <form action="#">
-                <p><label for="use_se"><input type="checkbox" id="use_se" name="use_se" checked="checked" /> <span>Show SE</span></label></p>
-                <p><label for="use_sd"><input type="checkbox" id="use_sd" name="use_sd"></input><span>Show SD</span></label></p>
-                <p><label for="use_points"><input type="checkbox" id="use_points" name="use_points"></input><span>Show points</span></label></p>
-                <p><label for="show_tutorial"><input type="checkbox" id="show_tutorial" name="show_tutorial"></input><span>Show tutorial after guess</span></label></p>
-                <p><label for="obtain_confirmation"><input type="checkbox" id="obtain_confirmation" name="obtain_confirmation"></input><span>Obtain confirmation before round</span></label></p>
-            </form>
-        </div>
-        -->
 
         <div id="dashboard">
             <div>Suppose you run a randomized control trial with a treatment and a control condition, measuring some dependent variable of interest. The outcome variables appear to be normally distributed within each condition. In the plot above, we show the means and 95% CIs for these two outcomes. <b>Suppose we drew 100 pairs of data points from the treatment and control groups. Out of those 100 pairs, in how many pairs can we expect the treatment outcome to be higher than the control outcome?</b></div>
@@ -61,6 +50,11 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div id="debug_data_panel" class="card-panel">
+            <div><b>Data collected so far (this will be hidden on mturk)</b></div>
+            <div id="debug_data"></div>
         </div>
 
         <div id="confirmation_modal" class="modal">

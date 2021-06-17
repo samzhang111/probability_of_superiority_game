@@ -1,4 +1,4 @@
-import { randn_adj, round100 } from './stats';
+import { randn_adj, round100, computeProbOfSuperiority } from './stats';
 
 export function generateScenario() {
     var mu1 = Math.random() * 3
@@ -13,9 +13,13 @@ export function generateScenario() {
     var n1 = Math.round(Math.random() * 85) + 15
     var n2 = Math.round(Math.random() * 85) + 15
 
-    return {
+    let scenario = {
         mu1, mu2, variance1, variance2, n1, n2
     }
+
+    scenario['probOfSuperiority'] = computeProbOfSuperiority(scenario)
+
+    return scenario
 }
 
 export function createBars(scenario, trialSettings) {
