@@ -32,7 +32,7 @@ function resetGame(trialSettings) {
 
     chart.point()
         .position('name*value')
-        .color('name', colors)
+        .color('name', 'black')
         .size(5)
         .style({
             fillOpacity: 0,
@@ -40,7 +40,7 @@ function resetGame(trialSettings) {
 
     chart.interval()
         .position('name*range')
-        .color('name', colors)
+        .color('name', 'black')
         .size(40)
         .shape('tick');
 
@@ -83,6 +83,7 @@ function resetGame(trialSettings) {
             .color("xcenter", colors)
             .shape("circle")
             .size(3)
+            .style({fillOpacity: 0.5, strokeOpacity: 0.5})
         chartPointView.scale({
             value: {
                 min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
@@ -246,6 +247,5 @@ chart = new Chart({
     height: 400
 });
 
-//updateSettings()
 updateExperiment()
 M.AutoInit();
