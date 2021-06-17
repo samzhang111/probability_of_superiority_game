@@ -3,6 +3,7 @@ import {generateScenario, createBars, samplePointsFromScenario, EXPERIMENTAL_CON
 import {round100, computeProbOfSuperiority} from "./stats"
 
 let chart, experimentState={}, experimentResults={}, trialSettings, showPoints, showTutorial
+const colors = ["#E91E63", "#4E5A7D"]
 const modals = document.querySelectorAll('.modal');
 let modal = M.Modal.init(modals, {
     opacity: 0.9,
@@ -31,7 +32,7 @@ function resetGame(trialSettings) {
 
     chart.point()
         .position('name*value')
-        .color('name')
+        .color('name', colors)
         .size(5)
         .style({
             fillOpacity: 0,
@@ -39,18 +40,20 @@ function resetGame(trialSettings) {
 
     chart.interval()
         .position('name*range')
-        .color('name')
+        .color('name', colors)
         .size(40)
         .shape('tick');
 
     chart.scale({
         value: {
             min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-            max: round100(upperBound + 0.1 * Math.abs(upperBound))
+            max: round100(upperBound + 0.1 * Math.abs(upperBound)),
+            formatter(y) { return y.toFixed(1) },
         },
         range: {
             min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-            max: round100(upperBound + 0.1 * Math.abs(upperBound))
+            max: round100(upperBound + 0.1 * Math.abs(upperBound)),
+            formatter(y) { return y.toFixed(1) },
         }
     });
 
@@ -69,25 +72,28 @@ function resetGame(trialSettings) {
         chartPointView
             .point()
             .position('name*value')
-            .adjust('jitter')
-            .color("name")
+            .adjust([{type: 'jitter'}])
+            .color("name", colors)
             .shape("circle")
             .size(3)
         chartPointView.scale({
             value: {
                 min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-                max: round100(upperBound + 0.1 * Math.abs(upperBound))
+                max: round100(upperBound + 0.1 * Math.abs(upperBound)),
+                formatter(y) { return y.toFixed(1) },
             }
         });
 
         chart.scale({
             value: {
                 min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-                max: round100(upperBound + 0.1 * Math.abs(upperBound))
+                max: round100(upperBound + 0.1 * Math.abs(upperBound)),
+                formatter(y) { return y.toFixed(1) },
             },
             range: {
                 min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
-                max: round100(upperBound + 0.1 * Math.abs(upperBound))
+                max: round100(upperBound + 0.1 * Math.abs(upperBound)),
+                formatter(y) { return y.toFixed(1) },
             }
         });
     }
