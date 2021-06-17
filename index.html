@@ -32,7 +32,8 @@
         <div id="dashboard" class="row">
             <div class="col s6">
                 <h4>Trial <span id="trialdisplay">1</span> of 20</h4>
-                Suppose you run a randomized control trial with a treatment and a control condition, measuring some dependent variable of interest. The outcome variables appear to be normally distributed within each condition. In the plot above, we show the means and 95% CIs for these two outcomes. <b>Suppose we drew 100 pairs of data points from the treatment and control groups. Out of those 100 pairs, in how many pairs can we expect the treatment outcome to be higher than the control outcome?</b>
+                <p>Suppose you run a randomized control trial with a treatment and a control condition, measuring some dependent variable of interest. The outcome variables appear to be normally distributed within each condition. In the plot above, we show the means and 95% CIs for these two outcomes. <b>Suppose we drew 100 pairs of data points from the treatment and control groups. Out of those 100 pairs, in how many pairs can we expect the treatment outcome to be higher than the control outcome?</b></p>
+                <p><em>Note: on some trials you will be shown the correct answer after your guess.</em></p>
                 <div id="results">
                     <div>
                         Guess: 
@@ -44,7 +45,7 @@
                         <div id="answer_block">
                         Answer: <span id="answer">&nbsp;</span>
                         </div>
-                        <div id="tutorial">The error bars displayed were 95% confidence intervals from the data shown above. The tightness of the error bars reflects how precisely the population mean can be estimated from the mean of the given sample. The data itself can still substantially overlap, even if the confidence intervals around the means do not overlap.</div>
+                        <div id="tutorial">The 95% confidence intervals were generated from data points, which we are now showing. We rescaled the y-axis of the plot, but the confidence intervals themselves haven't changed.</div>
                         <div>
                                 <a class="btn waves-effect waves-light" id="newgame">Continue</a>
                         </div>

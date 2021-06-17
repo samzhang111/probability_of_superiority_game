@@ -190,10 +190,6 @@ export function experimentStateToTrialSettings(experimentState) {
         trialSettings.showTutorial = true
         trialSettings.showFeedback = true
 
-        if (experimentState.trial == 6) {
-            trialSettings.obtainConfirmation = true
-        }
-
         return trialSettings
     }
 }

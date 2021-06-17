@@ -90,20 +90,6 @@ test.each([
 	})
 })
 
-test("SE_POINTS_FEEDBACK asks for confirmation on trial 6", () => {
-	expect(experimentStateToTrialSettings({
-		condition: EXPERIMENTAL_CONDITIONS_ENUM.SE_POINTS_FEEDBACK,
-		trial: 6
-	})).toMatchObject({
-		useSE: true,
-		useSD: false,
-		usePoints: false,
-		showTutorial: true,
-		showFeedback: true,
-		obtainConfirmation: true,
-	})
-})
-
 test("SE_POINTS_ONESHOT asks for confirmation before trial 7", () => {
 	expect(experimentStateToTrialSettings({
 		condition: EXPERIMENTAL_CONDITIONS_ENUM.SE_POINTS_ONESHOT,
@@ -146,7 +132,7 @@ test.each(_.range(7, 16))("SE_POINTS shows SE and points on trials 7-15", (trial
 	})
 })
 
-test(_.range(7, 16))("SE_POINTS_FEEDBACK shows tutorials after each round from 7-15", (trial) => {
+test.each(_.range(6, 16))("SE_POINTS_FEEDBACK shows tutorials after each round from 6-15", (trial) => {
 	expect(experimentStateToTrialSettings({
 		condition: EXPERIMENTAL_CONDITIONS_ENUM.SE_POINTS_FEEDBACK,
 		trial: trial
