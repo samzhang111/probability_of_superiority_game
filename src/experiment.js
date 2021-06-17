@@ -1,4 +1,4 @@
-import { randn_adj, computeProbOfSuperiority, round100 } from './stats';
+import { randn_adj, round100 } from './stats';
 
 export function generateScenario() {
     var mu1 = Math.random() * 3
@@ -24,7 +24,8 @@ export function createBars(scenario, trialSettings) {
     let data = []
     if (useSE) {
         data.push({
-            name: `Treatment (n=${n1})`,
+            name: 1,
+            //name: `Treatment (n=${n1})`,
             value: round100(mu1),
             n: n1,
             error: 2*round100(Math.sqrt(variance1/n1)),
@@ -33,7 +34,8 @@ export function createBars(scenario, trialSettings) {
     }
     if (useSD) {
         data.push({
-            name: `Treatment data (n=${n1})`,
+            name: 2,
+            //name: `Treatment data (n=${n1})`,
             value: round100(mu1),
             error: 2*round100(Math.sqrt(variance1)),
             sd: round100(Math.sqrt(variance1)),
@@ -42,7 +44,8 @@ export function createBars(scenario, trialSettings) {
     }
     if (useSE) {
         data.push({
-            name: `Control (n=${n2})`,
+            name: 4,
+            //name: `Control (n=${n2})`,
             value: round100(mu2),
             n: n2,
             error: 2*round100(Math.sqrt(variance2/n2)),
@@ -51,7 +54,8 @@ export function createBars(scenario, trialSettings) {
     }
     if (useSD) {
         data.push({
-            name: `Control data (n=${n2})`,
+            name: 3,
+            //name: `Control data (n=${n2})`,
             value: round100(mu2),
             error: 2*round100(Math.sqrt(variance2)),
             sd: round100(Math.sqrt(variance2)),
@@ -86,13 +90,17 @@ export function samplePointsFromScenario(scenario) {
 
     for (let i=0; i<n1; i++) {
         data.push({
-            name: `Treatment (n=${n1})`, 
+            name: 0.5 + Math.random(),
+            xcenter: 1,
+            //name: `Treatment (n=${n1})`, 
             value: sample1[i]
         })
     }
     for (let i=0; i<n2; i++) {
         data.push({
-            name: `Control (n=${n2})`, 
+            name: 3.5 + Math.random(),
+            xcenter: 4,
+            //name: `Control (n=${n2})`, 
             value: sample2[i]
         })
     }

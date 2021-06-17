@@ -54,8 +54,15 @@ function resetGame(trialSettings) {
             min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
             max: round100(upperBound + 0.1 * Math.abs(upperBound)),
             formatter(y) { return y.toFixed(1) },
-        }
-    });
+        },
+        name: {min: 0, max: 5, formatter(x) {
+            if (x == 1) { return `Treatment (n=${scenario.n1})` }
+            if (x == 4) { return `Control (n=${scenario.n2})` }
+
+            return ""
+        }, ticks: [1, 4]
+    }
+    })
 
 
     showPoints = () => {
@@ -72,8 +79,8 @@ function resetGame(trialSettings) {
         chartPointView
             .point()
             .position('name*value')
-            .adjust([{type: 'jitter'}])
-            .color("name", colors)
+            //.adjust([{type: 'jitter'}])
+            .color("xcenter", colors)
             .shape("circle")
             .size(3)
         chartPointView.scale({
@@ -81,7 +88,8 @@ function resetGame(trialSettings) {
                 min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
                 max: round100(upperBound + 0.1 * Math.abs(upperBound)),
                 formatter(y) { return y.toFixed(1) },
-            }
+            },
+            name: {min: 0, max: 5, ticks: [1, 4]}
         });
 
         chart.scale({
@@ -94,8 +102,19 @@ function resetGame(trialSettings) {
                 min: round100(lowerBound - 0.1 * Math.abs(lowerBound)),
                 max: round100(upperBound + 0.1 * Math.abs(upperBound)),
                 formatter(y) { return y.toFixed(1) },
-            }
-        });
+            },
+            name: {
+                min: 0,
+                max: 5,
+                formatter(x) {
+                    if (x == 1) { return `Treatment (n=${scenario.n1})` }
+                    if (x == 4) { return `Control (n=${scenario.n2})` }
+
+                    return ""
+                },
+                ticks: [1, 4]
+            },
+        })
     }
 
     showTutorial = () => {
