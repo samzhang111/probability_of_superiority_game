@@ -169,8 +169,11 @@ function submitGuess(event) {
 }
 
 function recordExperimentState() {
+    let usefulExperimentData = _.omit(experimentState, ['guessed'])
+    experimentResults.push(usefulExperimentData)
+
     let trialDataElem = document.createElement("pre")
-    trialDataElem.textContent = JSON.stringify(_.omit(experimentState, ['guessed']), null, 4) + ","
+    trialDataElem.textContent = JSON.stringify(usefulExperimentData, null, 4) + ","
     document.querySelector("#debug_data").appendChild(trialDataElem)
 }
 
@@ -205,6 +208,7 @@ function updateExperiment(event) {
     trialSettings = experimentStateToTrialSettings(experimentState)
 
     document.querySelector("#debug_data").innerHTML = ''
+    experimentResults = []
     newGame(trialSettings)
 }
 
