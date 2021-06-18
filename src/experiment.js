@@ -1,6 +1,7 @@
 import { randn_adj, round100, computeProbOfSuperiority } from './stats';
 
 export function generateScenario() {
+    /* This is not used for "yoking" */
     var mu1 = Math.random() * 3
     var mu2 = Math.random() * 3
     var tempMax = Math.max(mu1, mu2)

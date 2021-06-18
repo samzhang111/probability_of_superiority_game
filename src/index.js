@@ -1,9 +1,10 @@
 import { Chart } from '@antv/g2';
-import {generateScenario, createBars, samplePointsFromScenario, experimentStateToTrialSettings} from "./experiment"
+import {createBars, samplePointsFromScenario, experimentStateToTrialSettings} from "./experiment"
+import {getShuffledScenario} from "./scenarios"
 import {round100} from "./stats"
 import _ from "lodash"
 
-let chart, experimentState={}, experimentResults=[], trialSettings, showPoints, showTutorial, startTime = new Date().getTime()
+let chart, experimentState={}, experimentResults=[], trialSettings, showPoints, showTutorial, scenarios=getShuffledScenario(), startTime = new Date().getTime()
 const colors = ["#E91E63", "#4E5A7D"]
 const modals = document.querySelectorAll('.modal');
 let modal = M.Modal.init(modals, {
@@ -11,7 +12,7 @@ let modal = M.Modal.init(modals, {
     dismissable: true,
 })[0];
 
-function resetGame(trialSettings) {
+function resetGame(scenario, trialSettings) {
     chart.clear()
 
     document.querySelector("#theguess").value = ""
@@ -19,7 +20,6 @@ function resetGame(trialSettings) {
     document.querySelector("#after_game").style.display = "none"
     document.querySelector("#tutorial").style.display = "none"
 
-    let scenario = generateScenario()
     let bars = createBars(scenario, trialSettings)
     let {lowerBound, upperBound} = bars
 
@@ -137,8 +137,6 @@ function resetGame(trialSettings) {
 
     chart.interaction('active-region');
     chart.render();
-
-    return scenario
 }
 
 function submitGuess(event) {
@@ -190,7 +188,11 @@ function newGame(trialSettings) {
         instance.open()
     }
 
-    experimentState.scenario = resetGame(trialSettings)
+    let scenario = scenarios[experimentState.trial - 1]
+    console.log({scenarios, scenario, trialnum: experimentState.trial})
+    resetGame(scenario, trialSettings)
+    experimentState.scenario = scenario
+    document.querySelector("#yokeid").textContent = `${scenario.scenarioType}${scenario.scenarioId}`
     document.querySelector("#theguess").focus()
 }
 
