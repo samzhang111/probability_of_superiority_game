@@ -169,9 +169,9 @@ function submitGuess(event) {
 }
 
 function recordExperimentState() {
-    let usefulExperimentData = _.omit(experimentState, ['guessed'])
+    let usefulExperimentData = Object.assign({}, _.omit(experimentState, ['guessed']), mturkParams)
     logToAzure(usefulExperimentData).catch((logToAzureError) => {
-        console.error({logToAzureError})
+        console.error({usefulExperimentData, logToAzureError})
     })
 
     experimentResults.push(usefulExperimentData)
@@ -223,9 +223,11 @@ function updateExperiment(event) {
 }
 
 function endExperiment() {
-    experimentState['results'] = experimentResults
+    mturkParams['results'] = experimentResults
 
-    submitToMturk(experimentState).then(() => {
+    console.log({mturkParams})
+
+    submitToMturk(mturkParams).then(() => {
         document.querySelector("#submitting").style.display = "none"
         document.querySelector("#submitsuccess").style.display = "block"
     }).catch(error => {
@@ -268,7 +270,6 @@ mturkParams["turkSubmitTo"] = pageUrl.searchParams.get("turkSubmitTo")
 mturkParams["hitId"] = pageUrl.searchParams.get("hitId")
 mturkParams["workerId"] = pageUrl.searchParams.get("workerId")
 mturkParams["assignmentId"] = pageUrl.searchParams.get("assignmentId")
-Object.assign(experimentState, mturkParams)
 
 chart = new Chart({
     container: 'chart',
