@@ -1,10 +1,11 @@
 import { Chart } from '@antv/g2';
-import {createBars, samplePointsFromScenario, experimentStateToTrialSettings} from "./experiment"
-import {getShuffledScenario} from "./scenarios"
-import {round100} from "./stats"
+import { createBars, samplePointsFromScenario, experimentStateToTrialSettings } from "./experiment"
+import { getShuffledScenario } from "./scenarios"
+import { round100 } from "./stats"
+import { logToAzure, submitToMturk } from './web';
 import _ from "lodash"
 
-let chart, experimentState={}, experimentResults=[], trialSettings, showPoints, showTutorial, scenarios=getShuffledScenario(), startTime = new Date().getTime()
+let chart, experimentState={}, experimentResults=[], trialSettings, showPoints, showTutorial, scenarios=getShuffledScenario(), startTime = new Date().getTime(), mturkParams={}
 const colors = ["#E91E63", "#4E5A7D"]
 const modals = document.querySelectorAll('.modal');
 let modal = M.Modal.init(modals, {
@@ -169,6 +170,10 @@ function submitGuess(event) {
 
 function recordExperimentState() {
     let usefulExperimentData = _.omit(experimentState, ['guessed'])
+    logToAzure(usefulExperimentData).catch((logToAzureError) => {
+        console.error({logToAzureError})
+    })
+
     experimentResults.push(usefulExperimentData)
 
     let trialDataElem = document.createElement("pre")
@@ -192,7 +197,6 @@ function newGame(trialSettings) {
     console.log({scenarios, scenario, trialnum: experimentState.trial})
     resetGame(scenario, trialSettings)
     experimentState.scenario = scenario
-    document.querySelector("#yokeid").textContent = `${scenario.scenarioType}${scenario.scenarioId}`
     document.querySelector("#theguess").focus()
 }
 
@@ -205,6 +209,9 @@ function updateExperiment(event) {
         return
     }
 
+    // when switching to mturk mode, these should be assigned differently.
+    // trial = 1 always at the start
+    // condition is assigned randomly or by mturk
     experimentState.trial = parseInt(document.querySelector("#trialnumber").value)
     experimentState.condition = document.querySelector("input[name='condition']:checked").value
 
@@ -216,8 +223,22 @@ function updateExperiment(event) {
 }
 
 function endExperiment() {
-    // TODO: end it
-    alert("experiment is done! send data to mturk!")
+    experimentState['results'] = experimentResults
+
+    submitToMturk(experimentState).then(() => {
+        document.querySelector("#submitting").style.display = "none"
+        document.querySelector("#submitsuccess").style.display = "block"
+    }).catch(error => {
+        console.log({error})
+        document.querySelector("#submitting").style.display = "none"
+        document.querySelector("#submitfailure").style.display = "block"
+        document.querySelector("#workerIdError").textContent = experimentState.workerId
+        document.querySelector("#taskIdError").textContent = experimentState.assignmentId
+        document.querySelector("#turkSubmitError").textContent = error.stack
+    })
+
+    document.querySelector("#submitting").style.display = "block"
+    document.querySelector("#game").style.display = "none"
 }
 
 function nextRound() {
@@ -240,8 +261,14 @@ document.querySelectorAll("input[name='condition']").forEach(radio => {
 
 document.querySelector("#trialnumber").addEventListener("blur", updateExperiment)
 document.querySelector("#experiment_debug_form").addEventListener("submit", updateExperiment)
-
 document.querySelector("#loading").style.display = "none"
+
+const pageUrl = new URL(window.location.href)
+mturkParams["turkSubmitTo"] = pageUrl.searchParams.get("turkSubmitTo")
+mturkParams["hitId"] = pageUrl.searchParams.get("hitId")
+mturkParams["workerId"] = pageUrl.searchParams.get("workerId")
+mturkParams["assignmentId"] = pageUrl.searchParams.get("assignmentId")
+Object.assign(experimentState, mturkParams)
 
 chart = new Chart({
     container: 'chart',

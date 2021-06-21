@@ -54,3 +54,11 @@ html {
     font-size: 18px;
     display: none;
 }
+
+#submitting, #submitsuccess, #submitfailure {
+    display: none;
+}
+
+#trialsettings {
+    margin-top: 6em;
+}
