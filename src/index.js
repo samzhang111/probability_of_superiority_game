@@ -5,6 +5,7 @@ import { round100 } from "./stats"
 import { logToAzure, submitToMturk } from './web';
 import _ from "lodash"
 
+const STUDY_ID = "psup-pilot-1"
 let chart, experimentState={}, experimentResults=[], trialSettings, showPoints, showTutorial, scenarios=getShuffledScenario(), startTime = new Date().getTime(), mturkParams={}
 const colors = ["#E91E63", "#4E5A7D"]
 const modals = document.querySelectorAll('.modal');
@@ -266,6 +267,7 @@ document.querySelector("#experiment_debug_form").addEventListener("submit", upda
 document.querySelector("#loading").style.display = "none"
 
 const pageUrl = new URL(window.location.href)
+mturkParams["study_id"] = STUDY_ID
 mturkParams["turkSubmitTo"] = pageUrl.searchParams.get("turkSubmitTo")
 mturkParams["hitId"] = pageUrl.searchParams.get("hitId")
 mturkParams["workerId"] = pageUrl.searchParams.get("workerId")
